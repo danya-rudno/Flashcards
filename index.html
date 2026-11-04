@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="uk" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>English Tech Flashcards</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --text-color: #ffffff;
+            --card-front: #1e1e1e;
+            --card-back: #2a2a40;
+            --card-text: #ffffff;
+            --primary: #4f46e5;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --border: #333;
+            --sidebar-bg: #18181b;
+            --modal-bg: #27272a;
+            --glow-like: rgba(34, 197, 94, 0.4);
+            --glow-nope: rgba(239, 68, 68, 0.4);
+            
+            --item-bg: #1e1e1e;
+            --item-text: #ffffff;
+            --item-hover-bg: #2d2d3d;
+            --item-hover-text: #ffffff;
+            --active-item-bg: rgba(79, 70, 229, 0.3);
+            
+            --danger-hover-bg: var(--danger);
+            --danger-hover-text: #ffffff;
+
+            --tts-bg: rgba(255,255,255,0.2);
+            --tts-color: #ffffff;
+            --tts-hover: rgba(255,255,255,0.35);
+        }
+
+        .light-theme {
+            --bg-color: #f3f4f6;
+            --text-color: #111827;
+            --card-front: #ffffff;
+            --card-back: #f8fafc;
+            --card-text: #111827;
+            --primary: #4338ca;
+            --success: #16a34a;
+            --danger: #dc2626;
+            --border: #d1d5db;
+            --sidebar-bg: #ffffff;
+            --modal-bg: #ffffff;
+            --glow-like: rgba(22, 163, 74, 0.5);
+            --glow-nope: rgba(220, 38, 38, 0.5);
+            
+            --item-bg: #ffffff;
+            --item-text: #111827;
+            --item-hover-bg: #e0e7ff;
+            --item-hover-text: #4338ca;
+            --active-item-bg: #e0e7ff;
+
+            --danger-hover-bg: #fee2e2;
+            --danger-hover-text: #dc2626;
+            
+            --tts-bg: rgba(0,0,0,0.05);
+            --tts-color: #111827;
+            --tts-hover: rgba(0,0,0,0.15);
+        }
+
+        * { box-sizing: border-box; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+        body { margin: 0; padding: 0; background-color: var(--bg-color); color: var(--text-color); overflow: hidden; transition: background-color 0.3s ease; }
+
+        header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border-bottom: 1px solid var(--border); transition: border-color 0.3s ease; }
+        
+        .menu-btn, .sidebar-close {
+            display: flex; align-items: center; justify-content: center; cursor: pointer; background: none; border: none; 
+            color: var(--text-color); transition: transform 0.2s ease, color 0.3s ease; padding: 5px;
+        }
+        .menu-btn svg, .sidebar-close svg { stroke: var(--text-color); transition: stroke 0.3s ease; }
+        .menu-btn:hover, .sidebar-close:hover { transform: scale(1.1); }
+        .menu-btn:active, .sidebar-close:active { transform: scale(0.9); }
+        .sidebar-close:hover svg { stroke: var(--danger); }
+
+        .tabs { display: flex; gap: 10px; }
+        .tab { padding: 6px 12px; border-radius: 15px; cursor: pointer; background: transparent; border: 1px solid var(--border); color: var(--text-color); font-weight: 500; text-align: center; font-size: 14px; min-width: 80px; transition: all 0.3s ease; }
+        .tab small { display: block; font-weight: bold; font-size: 16px; margin-top: 2px; }
+        .tab:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: 0 4px 10px rgba(79, 70, 229, 0.2); }
+        .tab.active { background: var(--primary); color: white; border-color: var(--primary); transform: translateY(0); box-shadow: none; }
+
+        .main-container { position: relative; height: calc(100vh - 170px); display: flex; justify-content: center; align-items: center; overflow: hidden; perspective: 1000px; }
+        
+        .card-stack { position: relative; width: 320px; height: 420px; }
+        
+        .card {
+            position: absolute; width: 100%; height: 100%; border-radius: 20px; cursor: grab;
+            transform-style: preserve-3d; transition: transform 0.4s ease, opacity 0.4s ease, box-shadow 0.2s;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            display: flex; justify-content: center; align-items: center; text-align: center;
+        }
+        .card.swiping { transition: none; }
+        
+        .card-face {
+            position: absolute; width: 100%; height: 100%; backface-visibility: hidden;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            border-radius: 20px; padding: 20px; font-size: 28px; font-weight: bold; color: var(--card-text);
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+        }
+        
+        .front { background-color: var(--card-front); border: 2px solid var(--border); } 
+        .back { background-color: var(--card-back); transform: rotateY(180deg); border: 2px solid var(--border); } 
+        .is-flipped { transform: rotateY(180deg); }
+
+        .tts-btn { position: absolute; bottom: 20px; right: 20px; background: var(--tts-bg); border: none; border-radius: 50%; width: 45px; height: 45px; cursor: pointer; color: var(--tts-color); display: flex; justify-content: center; align-items: center; z-index: 5; transition: all 0.2s ease; }
+        .tts-btn:hover { background: var(--tts-hover); transform: scale(1.1); }
+        .tts-btn:active { transform: scale(0.9); }
+        .tts-btn svg { width: 22px; height: 22px; stroke: currentColor; }
+
+        .controls { height: 90px; display: flex; justify-content: center; align-items: center; gap: 20px; padding: 0 20px; }
+        .ctrl-btn { border-radius: 50%; border: none; cursor: pointer; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3); color: white; transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease; }
+        .ctrl-btn:hover { transform: scale(1.1); box-shadow: 0 6px 15px rgba(0,0,0,0.4); }
+        .ctrl-btn:active { transform: scale(0.9); box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        
+        .btn-small { width: 50px; height: 50px; background-color: #3f3f46; }
+        .btn-small svg { width: 22px; height: 22px; }
+        .btn-main { width: 65px; height: 65px; }
+        .btn-main svg { width: 32px; height: 32px; }
+        .btn-nope { background-color: var(--danger); }
+        .btn-nope:hover { box-shadow: 0 0 15px var(--glow-nope); }
+        .btn-like { background-color: var(--success); }
+        .btn-like:hover { box-shadow: 0 0 15px var(--glow-like); }
+
+        .sidebar { position: fixed; top: 0; left: -350px; width: 300px; height: 100%; background: var(--sidebar-bg); z-index: 100; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; box-shadow: 5px 0 25px rgba(0,0,0,0.5); }
+        .sidebar.open { transform: translateX(350px); }
+        
+        .sidebar-header { padding: 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; transition: border-color 0.3s ease; }
+        .sidebar-header h3 { margin: 0; }
+        
+        .sidebar-content { flex: 1; overflow-y: auto; padding: 20px; }
+        
+        .group-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; margin-bottom: 10px; background: var(--item-bg); color: var(--item-text); border-radius: 8px; cursor: pointer; border: 1px solid var(--border); transition: all 0.2s ease; }
+        .group-item:hover { border-color: var(--primary); transform: translateX(5px); box-shadow: -4px 4px 10px rgba(0,0,0,0.2); }
+        .group-item.active { border-color: var(--primary); background: var(--active-item-bg); }
+        
+        .group-actions { display: flex; gap: 4px; }
+        .group-actions button { display: flex; align-items: center; justify-content: center; background: none; border: none; cursor: pointer; color: var(--item-text); transition: transform 0.2s ease, color 0.2s ease; opacity: 0.8; padding: 5px; }
+        .group-actions button:hover { transform: scale(1.2); opacity: 1; }
+        .group-actions button:hover:last-child { color: var(--danger); }
+        .group-actions button:hover:first-child { color: var(--primary); }
+        
+        .sidebar-tools { padding: 20px; border-top: 1px solid var(--border); background: var(--sidebar-bg); transition: border-color 0.3s ease; }
+        .tool-btn { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px; margin-bottom: 10px; background: var(--item-bg); color: var(--item-text); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; text-align: left; transition: all 0.2s ease; font-weight: 500; }
+        .tool-btn:hover { background: var(--item-hover-bg); border-color: var(--primary); color: var(--item-hover-text); transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .tool-btn.danger:hover { background: var(--danger-hover-bg); border-color: var(--danger); color: var(--danger-hover-text); }
+        .tool-btn:active { transform: translateY(0); }
+        .tool-btn svg { width: 20px; height: 20px; }
+
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 99; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; backdrop-filter: blur(2px); }
+        .overlay.show { opacity: 1; pointer-events: all; }
+        
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 200; display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; backdrop-filter: blur(4px); }
+        .modal.show { opacity: 1; pointer-events: all; }
+        
+        .modal-content { background: var(--modal-bg); border-radius: 16px; width: 90%; max-width: 500px; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; transform: scale(0.95); opacity: 0; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease; box-shadow: 0 15px 40px rgba(0,0,0,0.4); }
+        .modal.show .modal-content { transform: scale(1); opacity: 1; }
+        
+        .modal-header { position: sticky; top: 0; background: var(--modal-bg); padding: 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; z-index: 10; transition: background-color 0.3s ease, border-color 0.3s ease; }
+        .modal-header h2 { margin: 0; font-size: 20px; color: var(--text-color); }
+        
+        .modal-close { display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-color); background: none; border: none; transition: transform 0.2s ease, color 0.2s ease; padding: 5px; }
+        .modal-close:hover { transform: rotate(90deg); color: var(--danger); }
+        .modal-close svg { stroke: var(--text-color); transition: stroke 0.3s ease; }
+        .modal-close:hover svg { stroke: var(--danger); }
+        
+        .modal-body { padding: 20px; overflow-y: auto; color: var(--text-color); }
+        
+        input[type="text"], textarea { width: 100%; padding: 12px; margin-bottom: 15px; background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border); border-radius: 8px; transition: border-color 0.2s ease, box-shadow 0.2s ease; font-size: 15px; }
+        input[type="text"]:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2); }
+        
+        .btn-save { background: var(--primary); color: white; border: none; padding: 14px 20px; border-radius: 8px; cursor: pointer; width: 100%; font-size: 16px; margin-bottom: 10px; font-weight: bold; transition: all 0.2s ease; }
+        .btn-save:hover { background: #4338ca; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3); }
+        .btn-save:active { transform: translateY(0); }
+        
+        .word-edit-item { display: flex; justify-content: space-between; padding: 12px 10px; border-bottom: 1px solid var(--border); align-items: center; transition: background-color 0.2s ease; border-radius: 6px; }
+        .word-edit-item:hover { background: rgba(255,255,255,0.05); }
+        .word-edit-actions { display: flex; gap: 8px; }
+        .word-edit-actions button { display: flex; align-items: center; justify-content: center; background: none; border: none; cursor: pointer; transition: transform 0.2s ease, color 0.2s ease; opacity: 0.8; padding: 5px; }
+        .word-edit-actions button:hover { transform: scale(1.2); opacity: 1; }
+        .btn-edit-word { color: var(--primary); }
+        .btn-delete-word { color: var(--danger); }
+
+        .end-screen { text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; animation: fadeIn 0.5s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .end-screen h2 { margin-bottom: 20px; font-size: 22px; color: var(--text-color); }
+        .btn-restart { background: var(--primary); color: white; border: none; padding: 14px 28px; border-radius: 30px; font-size: 18px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4); transition: all 0.2s ease; }
+        .btn-restart:hover { transform: translateY(-3px) scale(1.05); box-shadow: 0 6px 20px rgba(79, 70, 229, 0.6); }
+        .btn-restart:active { transform: translateY(0) scale(0.95); }
+
+        .ua-subtext { display: block; font-size: 16px; font-weight: normal; opacity: 0.75; margin-top: 8px; color: #a1a1aa; }
+
+        /* Confirm Modal styles */
+        .confirm-actions { display: flex; gap: 10px; margin-top: 20px; }
+        .btn-confirm { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; transition: all 0.2s ease; }
+        .btn-confirm.yes { background: var(--danger); color: white; }
+        .btn-confirm.yes:hover { background: #dc2626; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3); }
+        .btn-confirm.no { background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border); }
+        .btn-confirm.no:hover { background: var(--border); transform: translateY(-2px); }
+        
+        .single-word-edit-form { display: flex; flex-direction: column; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+        .single-word-actions { display: flex; gap: 10px; margin-top: 5px; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <button class="menu-btn" onclick="toggleSidebar()" aria-label="Меню">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </button>
+        <div class="tabs">
+            <div class="tab active" onclick="setTab('all')" id="tab-all">Усі<br><small>0</small></div>
+            <div class="tab" onclick="setTab('known')" id="tab-known">Знаю<br><small>0</small></div>
+            <div class="tab" onclick="setTab('unknown')" id="tab-unknown">Не знаю<br><small>0</small></div>
+        </div>
+        <div style="width: 34px;"></div>
+    </header>
+
+    <div class="main-container">
+        <div class="card-stack" id="card-stack"></div>
+    </div>
+
+    <div class="controls">
+        <button class="ctrl-btn btn-small" onclick="undoSwipe()" aria-label="Скасувати">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
+        </button>
+        <button class="ctrl-btn btn-main btn-nope" onclick="forceSwipe(-1)" aria-label="Не знаю">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+        <button class="ctrl-btn btn-main btn-like" onclick="forceSwipe(1)" aria-label="Знаю">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        </button>
+        <button class="ctrl-btn btn-small" onclick="shuffleCards()" aria-label="Перемішати">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5"/><path d="M4 20L21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></svg>
+        </button>
+    </div>
+
+    <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h3>Мої групи слів</h3>
+            <button class="sidebar-close" onclick="toggleSidebar()" aria-label="Закрити">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+        </div>
+        <div class="sidebar-content">
+            <div id="groups-list"></div>
+            <button class="btn-save" style="margin-top: 15px;" onclick="openNewGroupModal()">+ Створити групу</button>
+        </div>
+        <div class="sidebar-tools">
+            <button class="tool-btn" onclick="resetCurrentGroup()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                Скинути прогрес групи
+            </button>
+            <button class="tool-btn" onclick="toggleTheme()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                Світла / Темна тема
+            </button>
+            <button class="tool-btn danger" onclick="factoryReset()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                Повністю скинути дані
+            </button>
+        </div>
+    </div>
+
+    <div class="modal" id="edit-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Редагування групи</h2>
+                <button class="modal-close" onclick="closeModal()" aria-label="Закрити">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="edit-group-id">
+                <input type="text" id="edit-group-name" placeholder="Приклад: Інженерія, Дизайн">
+                
+                <label style="display:block; margin-bottom: 8px; font-size: 14px;">Додати слова (по одному на рядок АБО через кому):</label>
+                <textarea id="edit-group-words" rows="5" placeholder="ball bearing - кульковий підшипник&#10;cat, dog, fish"></textarea>
+                
+                <button class="btn-save" id="btn-save-group" onclick="saveGroup()">Зберегти групу</button>
+
+                <h3 style="margin-top:20px; font-size: 18px;">Слова у групі:</h3>
+                <div id="word-list-edit"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal" id="confirm-modal">
+        <div class="modal-content" style="max-width: 350px;">
+            <div class="modal-header">
+                <h2 style="font-size:18px;">Підтвердження</h2>
+                <button class="modal-close" onclick="closeConfirmModal()" aria-label="Закрити">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            <div class="modal-body" style="text-align: center; padding: 30px 20px;">
+                <p id="confirm-text" style="font-size: 16px; margin: 0;"></p>
+                <div class="confirm-actions">
+                    <button class="btn-confirm no" onclick="closeConfirmModal()">Ні</button>
+                    <button class="btn-confirm yes" id="confirm-yes-btn">Так</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+const defaultData = [
+    { id: 'g1', name: 'Механічна Інженерія', words: [
+        { id: 'w1', en: 'assess', ua: 'оцінювати', status: 'new' },
+        { id: 'w2', en: 'broad', ua: 'широкий (за тематикою)', status: 'new' },
+        { id: 'w3', en: 'hardware', ua: 'обладнання / механічні компоненти', status: 'new' },
+        { id: 'w4', en: 'power transmission', ua: 'передача потужності (силопередача)', status: 'new' },
+        { id: 'w5', en: 'ball bearing', ua: 'кульковий підшипник', status: 'new' },
+        { id: 'w6', en: 'inner race', ua: 'внутрішнє кільце (підшипника)', status: 'new' }
+    ]}
+];
+
+let groups = [];
+let activeGroupId = 'g1';
+let activeTab = 'all'; 
+let currentCards = [];
+let swipeHistory = [];
+let isAnimating = false;
+let editingWordId = null; 
+
+function init() {
+    const savedGroups = localStorage.getItem('flashcardGroupsV3');
+    const savedTheme = localStorage.getItem('flashcardThemeV3');
+    if (savedGroups) { 
+        groups = JSON.parse(savedGroups); 
+        if(!groups.find(g => g.id === activeGroupId)) {
+            activeGroupId = groups[0] ? groups[0].id : null; 
+        }
+    } else { 
+        groups = JSON.parse(JSON.stringify(defaultData)); 
+    }
+    
+    if (savedTheme === 'light') toggleTheme(true);
+    
+    renderSidebar();
+    
+    if (activeGroupId) {
+        setTab('all'); 
+    } else {
+        updateCounters();
+        buildCardStack();
+    }
+}
+
+function saveData() { localStorage.setItem('flashcardGroupsV3', JSON.stringify(groups)); }
+
+function updateUI() {
+    renderSidebar();
+    updateCounters();
+    buildCardStack();
+}
+
+function updateCounters() {
+    const group = groups.find(g => g.id === activeGroupId);
+    if(!group) {
+        document.getElementById('tab-all').innerHTML = `Усі<br><small>0</small>`;
+        document.getElementById('tab-known').innerHTML = `Знаю<br><small>0</small>`;
+        document.getElementById('tab-unknown').innerHTML = `Не знаю<br><small>0</small>`;
+        return;
+    }
+    const all = group.words.length;
+    const known = group.words.filter(w => w.status === 'known').length;
+    const unknown = group.words.filter(w => w.status === 'unknown' || w.status === 'new').length;
+    
+    document.getElementById('tab-all').innerHTML = `Усі<br><small>${all}</small>`;
+    document.getElementById('tab-known').innerHTML = `Знаю<br><small>${known}</small>`;
+    document.getElementById('tab-unknown').innerHTML = `Не знаю<br><small>${unknown}</small>`;
+}
+
+function setTab(tab) {
+    activeTab = tab;
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('tab-' + tab).classList.add('active');
+    swipeHistory = [];
+    
+    const group = groups.find(g => g.id === activeGroupId);
+    if (group) {
+        currentCards = group.words.filter(w => {
+            if (activeTab === 'all') return true;
+            if (activeTab === 'known') return w.status === 'known';
+            if (activeTab === 'unknown') return w.status === 'unknown' || w.status === 'new';
+        });
+    }
+    
+    updateCounters();
+    buildCardStack();
+}
+
+function setActiveGroup(id) { activeGroupId = id; setTab('all'); toggleSidebar(); }
+
+function buildCardStack() {
+    const stack = document.getElementById('card-stack');
+    stack.innerHTML = '';
+    
+    const group = groups.find(g => g.id === activeGroupId);
+    if (!group) {
+        stack.innerHTML = '<div class="end-screen"><h2>Групу не знайдено</h2></div>';
+        return;
+    }
+
+    if (currentCards.length === 0) {
+        const knownWordsCount = group.words.filter(w => w.status === 'known').length;
+        const unknownWordsCount = group.words.filter(w => w.status === 'unknown' || w.status === 'new').length;
+
+        if (activeTab === 'all') {
+            stack.innerHTML = `<div class="end-screen"><h2>У тебе закінчились слова в цій групі</h2><button class="btn-restart" onclick="setTab('all')">Спробувати ще раз</button></div>`;
+        } else if (activeTab === 'known') {
+            if (knownWordsCount > 0) {
+                stack.innerHTML = `<div class="end-screen"><h2>У тебе закінчились слова в цій групі</h2><button class="btn-restart" onclick="setTab('known')">Спробувати ще раз</button></div>`;
+            } else {
+                stack.innerHTML = `<div class="end-screen"><h2>лох, ти не знаєш жодного слова</h2></div>`;
+            }
+        } else if (activeTab === 'unknown') {
+            if (unknownWordsCount > 0) {
+                stack.innerHTML = `<div class="end-screen"><h2>У тебе закінчились слова в цій групі</h2><button class="btn-restart" onclick="setTab('unknown')">Спробувати ще раз</button></div>`;
+            } else {
+                stack.innerHTML = `<div class="end-screen"><h2>маладєц, ти знаєш всі слова</h2></div>`;
+            }
+        }
+        return;
+    }
+
+    const renderLimit = Math.min(3, currentCards.length);
+    for (let i = renderLimit - 1; i >= 0; i--) {
+        const word = currentCards[i];
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.dataset.id = word.id;
+        card.style.zIndex = renderLimit - i;
+        if (i > 0) card.style.transform = `scale(${1 - i*0.05}) translateY(${i*10}px)`;
+
+        const uaFormatted = word.ua.replace(/(\([^)]+\))/g, '<span class="ua-subtext">$1</span>');
+
+        card.innerHTML = `
+            <div class="card-face front">
+                <div>${uaFormatted}</div>
+            </div>
+            <div class="card-face back">
+                <div>${word.en}</div>
+                <button class="tts-btn" onclick="speakText('${word.en.replace(/'/g, "\\'")}', event)" aria-label="Озвучити">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg>
+                </button>
+            </div>
+        `;
+
+        card.addEventListener('click', (e) => {
+            if(e.target.closest('.tts-btn')) return;
+            card.classList.toggle('is-flipped');
+        });
+
+        if (i === 0) initSwipe(card, word);
+        stack.appendChild(card);
+    }
+}
+
+function initSwipe(card, wordData) {
+    let startX = 0, currentX = 0, startY = 0, currentY = 0, isDragging = false;
+    
+    const onStart = (x, y) => { isDragging = true; startX = x; startY = y; card.classList.add('swiping'); };
+    const onMove = (x, y) => {
+        if (!isDragging || isAnimating) return;
+        currentX = x - startX; currentY = y - startY;
+        const rotate = currentX * 0.05;
+        card.style.transform = `translate(${currentX}px, ${currentY}px) rotate(${rotate}deg)`;
+        
+        if (currentX > 0) {
+            card.style.boxShadow = `0 10px 30px rgba(0,0,0,0.3), 0 0 ${currentX/3}px rgba(34, 197, 94, ${Math.min(currentX/200, 0.8)})`;
+        } else {
+            card.style.boxShadow = `0 10px 30px rgba(0,0,0,0.3), 0 0 ${Math.abs(currentX)/3}px rgba(239, 68, 68, ${Math.min(Math.abs(currentX)/200, 0.8)})`;
+        }
+    };
+    const onEnd = () => {
+        if (!isDragging || isAnimating) return;
+        isDragging = false; card.classList.remove('swiping');
+        if (currentX > 100) processSwipe(wordData.id, 'known', currentX, currentY);
+        else if (currentX < -100) processSwipe(wordData.id, 'unknown', currentX, currentY);
+        else { card.style.transform = ''; card.style.boxShadow = '0 10px 30px rgba(0,0,0,0.3)'; }
+    };
+
+    card.addEventListener('touchstart', e => onStart(e.touches[0].clientX, e.touches[0].clientY), {passive: true});
+    card.addEventListener('touchmove', e => onMove(e.touches[0].clientX, e.touches[0].clientY), {passive: true});
+    card.addEventListener('touchend', onEnd);
+    card.addEventListener('mousedown', e => { e.preventDefault(); onStart(e.clientX, e.clientY); });
+    document.addEventListener('mousemove', e => onMove(e.clientX, e.clientY));
+    document.addEventListener('mouseup', onEnd);
+}
+
+function processSwipe(wordId, newStatus, endX = 0, endY = 0) {
+    if (isAnimating) return;
+    isAnimating = true;
+
+    const group = groups.find(g => g.id === activeGroupId);
+    if(!group) { isAnimating = false; return; }
+    const wordIndex = group.words.findIndex(w => w.id === wordId);
+    if (wordIndex === -1) { isAnimating = false; return; }
+
+    swipeHistory.push({ wordId: wordId, prevStatus: group.words[wordIndex].status });
+    group.words[wordIndex].status = newStatus;
+    
+    currentCards = currentCards.filter(w => w.id !== wordId);
+    
+    const cardEl = document.querySelector(`.card[data-id="${wordId}"]`);
+    if(cardEl) {
+        const throwX = endX > 0 || (endX === 0 && newStatus === 'known') ? window.innerWidth : -window.innerWidth;
+        cardEl.style.transition = 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease';
+        cardEl.style.transform = `translate(${throwX}px, ${endY}px) rotate(${(endX||500) * 0.1}deg)`;
+        cardEl.style.opacity = '0';
+    }
+
+    saveData();
+    updateCounters();
+    
+    setTimeout(() => { 
+        buildCardStack(); 
+        isAnimating = false;
+    }, 150); 
+}
+
+function forceSwipe(direction) {
+    if(currentCards.length === 0 || isAnimating) return;
+    const currentWord = currentCards[0]; 
+    processSwipe(currentWord.id, direction === 1 ? 'known' : 'unknown', direction * 500, 0);
+}
+
+function undoSwipe() {
+    if (swipeHistory.length === 0 || isAnimating) return;
+    const last = swipeHistory.pop();
+    const group = groups.find(g => g.id === activeGroupId);
+    if(!group) return;
+    const word = group.words.find(w => w.id === last.wordId);
+    if(word) {
+        word.status = last.prevStatus;
+        saveData();
+        updateCounters();
+        currentCards.unshift(word);
+        buildCardStack();
+    }
+}
+
+function shuffleCards() {
+    if(currentCards.length > 0) { 
+        currentCards.sort(() => Math.random() - 0.5); 
+        buildCardStack(); 
+    }
+}
+
+function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+    if(document.getElementById('sidebar').classList.contains('open')){
+        document.getElementById('overlay').classList.add('show');
+    } else {
+        document.getElementById('overlay').classList.remove('show');
+    }
+}
+
+function renderSidebar() {
+    const list = document.getElementById('groups-list');
+    list.innerHTML = '';
+    groups.forEach(g => {
+        const div = document.createElement('div');
+        div.className = `group-item ${g.id === activeGroupId ? 'active' : ''}`;
+        div.innerHTML = `
+            <span onclick="setActiveGroup('${g.id}')" style="flex:1;">${g.name} (${g.words.length})</span>
+            <div class="group-actions">
+                <button onclick="editGroup('${g.id}', event)" aria-label="Редагувати">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                </button>
+                <button onclick="confirmAction('Видалити групу назавжди?', () => deleteGroup('${g.id}'), event)" aria-label="Видалити">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                </button>
+            </div>
+        `;
+        list.appendChild(div);
+    });
+}
+
+function openNewGroupModal() {
+    document.getElementById('edit-group-id').value = '';
+    document.getElementById('edit-group-name').value = '';
+    document.getElementById('edit-group-words').value = '';
+    document.getElementById('word-list-edit').innerHTML = '';
+    document.getElementById('modal-title').innerText = 'Нова група';
+    document.getElementById('edit-modal').classList.add('show');
+    if(document.getElementById('sidebar').classList.contains('open')) toggleSidebar();
+}
+
+function editGroup(id, event) {
+    if(event) event.stopPropagation();
+    editingWordId = null;
+    const group = groups.find(g => g.id === id);
+    if(!group) return;
+    document.getElementById('edit-group-id').value = group.id;
+    document.getElementById('edit-group-name').value = group.name;
+    document.getElementById('edit-group-words').value = '';
+    
+    renderEditWordList(group.id);
+    
+    document.getElementById('modal-title').innerText = 'Редагувати групу';
+    document.getElementById('edit-modal').classList.add('show');
+    if(document.getElementById('sidebar').classList.contains('open')) toggleSidebar();
+}
+
+function renderEditWordList(groupId) {
+    const group = groups.find(g => g.id === groupId);
+    const wordList = document.getElementById('word-list-edit');
+    wordList.innerHTML = '';
+    if(!group) return;
+    
+    group.words.forEach(w => {
+        if (editingWordId === w.id) {
+            wordList.innerHTML += `
+                <div class="single-word-edit-form">
+                    <input type="text" id="edit-en-${w.id}" value="${w.en.replace(/"/g, '&quot;')}" placeholder="English">
+                    <input type="text" id="edit-ua-${w.id}" value="${w.ua.replace(/"/g, '&quot;')}" placeholder="Українська">
+                    <div class="single-word-actions">
+                        <button class="btn-save" style="margin-bottom:0; flex:1;" onclick="saveSingleWord('${group.id}', '${w.id}')">Зберегти</button>
+                        <button class="btn-confirm no" onclick="cancelEditWord('${group.id}')">Скасувати</button>
+                    </div>
+                </div>
+            `;
+        } else {
+            wordList.innerHTML += `
+                <div class="word-edit-item">
+                    <span style="flex:1; line-height: 1.4;"><strong>EN:</strong> ${w.en} <br><strong>UA:</strong> ${w.ua}</span>
+                    <div class="word-edit-actions">
+                        <button class="btn-edit-word" onclick="editSingleWord('${group.id}', '${w.id}')" aria-label="Редагувати">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        </button>
+                        <button class="btn-delete-word" onclick="deleteWord('${group.id}', '${w.id}')" aria-label="Видалити">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+    });
+}
+
+function editSingleWord(groupId, wordId) {
+    editingWordId = wordId;
+    renderEditWordList(groupId);
+}
+
+function cancelEditWord(groupId) {
+    editingWordId = null;
+    renderEditWordList(groupId);
+}
+
+function saveSingleWord(groupId, wordId) {
+    const group = groups.find(g => g.id === groupId);
+    if (!group) return;
+    const word = group.words.find(w => w.id === wordId);
+    if (!word) return;
+
+    const newEn = document.getElementById(`edit-en-${wordId}`).value.trim();
+    const newUa = document.getElementById(`edit-ua-${wordId}`).value.trim();
+
+    if (newEn || newUa) {
+        word.en = newEn;
+        word.ua = newUa;
+        saveData();
+        updateCounters();
+        
+        const cardIndex = currentCards.findIndex(c => c.id === wordId);
+        if (cardIndex !== -1) {
+            currentCards[cardIndex].en = newEn;
+            currentCards[cardIndex].ua = newUa;
+        }
+        
+        if (activeGroupId === groupId) buildCardStack();
+    }
+    
+    editingWordId = null;
+    renderEditWordList(groupId);
+}
+
+function closeModal() { 
+    document.getElementById('edit-modal').classList.remove('show'); 
+    editingWordId = null;
+}
+
+async function autoTranslate(enText) {
+    try {
+        const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(enText)}&langpair=en|uk`);
+        const data = await res.json();
+        return data.responseData.translatedText || enText;
+    } catch(e) {
+        return "Переклад відсутній";
+    }
+}
+
+// ------------------------------------------------------------
+// ENHANCED SMART PARSER LOGIC
+// ------------------------------------------------------------
+
+const GARBAGE_WORDS = [
+    "description", "page", "title", "content", "copyright", "all rights reserved"
+];
+
+function cleanText(text) {
+    let cleaned = text.replace(/^[\s\-—–:,;\/\\]+|[\s\-—–:,;\/\\]+$/g, '').trim();
+    for (let gw of GARBAGE_WORDS) {
+        const regexStart = new RegExp(`^${gw}\\s*`, 'i');
+        const regexEnd = new RegExp(`\\s*${gw}$`, 'i');
+        cleaned = cleaned.replace(regexStart, '').replace(regexEnd, '');
+    }
+    return cleaned.trim();
+}
+
+function isInvalidFragment(enStr, uaStr) {
+    if (!enStr && !uaStr) return true; 
+    if (enStr.length <= 1 && uaStr.length <= 1) return true; 
+    if (!enStr && /^[\-—–].{1,10}$/.test(uaStr)) return true;
+    return false;
+}
+
+function extractCardsFromLine(line) {
+    let tokens = [];
+    let currentToken = "";
+    let inParens = false;
+    
+    for (let i = 0; i < line.length; i++) {
+        let char = line[i];
+        if (char === '(') inParens = true;
+        if (char === ')') inParens = false;
+        
+        if (char === ' ' && !inParens) {
+            if (currentToken.trim()) tokens.push(currentToken.trim());
+            currentToken = "";
+        } else {
+            currentToken += char;
+        }
+    }
+    if (currentToken.trim()) tokens.push(currentToken.trim());
+    
+    let blocks = [];
+    let currentBlock = { lang: null, tokens: [] };
+    
+    for (let token of tokens) {
+        let lang = 'NEUTRAL';
+        if (!/^\(.*\)$/.test(token.trim())) {
+            let cleanToken = token.replace(/[\(\)]/g, '');
+            if (/[а-яА-ЯіІїЇєЄґҐ]/.test(cleanToken)) lang = 'UA';
+            else if (/[a-zA-Z]/.test(cleanToken)) lang = 'EN';
+        }
+        
+        if (lang === 'NEUTRAL') {
+            currentBlock.tokens.push(token);
+        } else {
+            if (currentBlock.lang === null) {
+                currentBlock.lang = lang;
+                currentBlock.tokens.push(token);
+            } else if (currentBlock.lang === lang) {
+                currentBlock.tokens.push(token);
+            } else {
+                blocks.push(currentBlock);
+                currentBlock = { lang: lang, tokens: [token] };
+            }
+        }
+    }
+    if (currentBlock.tokens.length > 0) blocks.push(currentBlock);
+    
+    let mergedBlocks = [];
+    let pendingNeutral = [];
+    for (let b of blocks) {
+        if (b.lang === null) {
+            pendingNeutral.push(...b.tokens);
+        } else {
+            b.tokens = pendingNeutral.concat(b.tokens);
+            pendingNeutral = [];
+            mergedBlocks.push(b);
+        }
+    }
+    if (pendingNeutral.length > 0 && mergedBlocks.length > 0) {
+        mergedBlocks[mergedBlocks.length - 1].tokens.push(...pendingNeutral);
+    } else if (pendingNeutral.length > 0) {
+        mergedBlocks.push({ lang: null, tokens: pendingNeutral });
+    }
+    
+    let cards = [];
+    let currentCard = { en: [], ua: [], seenEN: false, seenUA: false, firstLang: null };
+    
+    for (let b of mergedBlocks) {
+        if (b.lang === 'EN') {
+            if (currentCard.seenEN && currentCard.seenUA && currentCard.firstLang === 'EN') {
+                cards.push(currentCard);
+                currentCard = { en: [...b.tokens], ua: [], seenEN: true, seenUA: false, firstLang: 'EN' };
+            } else {
+                currentCard.en.push(...b.tokens);
+                currentCard.seenEN = true;
+                if (!currentCard.firstLang) currentCard.firstLang = 'EN';
+            }
+        } else if (b.lang === 'UA') {
+            if (currentCard.seenEN && currentCard.seenUA && currentCard.firstLang === 'UA') {
+                cards.push(currentCard);
+                currentCard = { en: [], ua: [...b.tokens], seenEN: false, seenUA: true, firstLang: 'UA' };
+            } else {
+                currentCard.ua.push(...b.tokens);
+                currentCard.seenUA = true;
+                if (!currentCard.firstLang) currentCard.firstLang = 'UA';
+            }
+        } else {
+            currentCard.en.push(...b.tokens);
+        }
+    }
+    if (currentCard.en.length > 0 || currentCard.ua.length > 0) {
+        cards.push(currentCard);
+    }
+    
+    return cards;
+}
+
+// ------------------------------------------------------------
+
+async function saveGroup() {
+    const id = document.getElementById('edit-group-id').value;
+    const name = document.getElementById('edit-group-name').value || 'Нова група';
+    const rawWords = document.getElementById('edit-group-words').value;
+    
+    const saveBtn = document.getElementById('btn-save-group');
+    const originalText = saveBtn.innerText;
+    saveBtn.innerText = 'Збереження...';
+    saveBtn.disabled = true;
+
+    let targetGroup;
+    if (id) {
+        targetGroup = groups.find(g => g.id === id);
+        if(targetGroup) targetGroup.name = name;
+    } else {
+        targetGroup = { id: 'g' + Date.now(), name: name, words: [] };
+        groups.push(targetGroup);
+        activeGroupId = targetGroup.id;
+    }
+
+    if (rawWords.trim() && targetGroup) {
+        const lines = rawWords.split('\n').map(s => s.trim()).filter(Boolean);
+        let tempCards = []; 
+        
+        for (let line of lines) {
+            line = line.replace(/^[\d\.\)\-\*\•]+\s*/, '').trim();
+            if (!line) continue;
+            
+            if (!/[a-zA-Z]/.test(line)) {
+                if (tempCards.length > 0) {
+                    let cleanFragment = cleanText(line);
+                    if (cleanFragment) {
+                        tempCards[tempCards.length - 1].ua += ' ' + cleanFragment;
+                    }
+                }
+                continue; 
+            }
+
+            let extracted = extractCardsFromLine(line);
+            let finalCards = [];
+            
+            for (let c of extracted) {
+                let enStr = cleanText(c.en.join(' '));
+                let uaStr = cleanText(c.ua.join(' '));
+                
+                if (!uaStr && enStr.includes(',')) {
+                    let parts = enStr.split(',');
+                    for (let p of parts) {
+                        let cleanP = cleanText(p);
+                        if (cleanP && !isInvalidFragment(cleanP, '')) finalCards.push({ en: cleanP, ua: '' });
+                    }
+                } 
+                else if (!enStr && uaStr.includes(',')) {
+                    let parts = uaStr.split(',');
+                    for (let p of parts) {
+                        let cleanP = cleanText(p);
+                        if (cleanP && !isInvalidFragment('', cleanP)) finalCards.push({ en: '', ua: cleanP });
+                    }
+                } 
+                else {
+                    if (isInvalidFragment(enStr, uaStr)) {
+                         if (finalCards.length > 0 && !enStr) {
+                             finalCards[finalCards.length - 1].ua += ' ' + uaStr;
+                         }
+                    } else if (enStr || uaStr) {
+                        finalCards.push({ en: enStr, ua: uaStr });
+                    }
+                }
+            }
+
+            tempCards.push(...finalCards);
+        }
+
+        for (let fc of tempCards) {
+            let finalEn = fc.en;
+            let finalUa = fc.ua;
+            
+            if (finalEn && !finalUa) {
+                finalUa = await autoTranslate(finalEn);
+            }
+            
+            if (finalEn || finalUa) {
+                targetGroup.words.push({
+                    id: 'w' + Date.now() + Math.random(),
+                    en: finalEn || '',
+                    ua: finalUa || '',
+                    status: 'new'
+                });
+            }
+        }
+    }
+
+    saveBtn.innerText = originalText;
+    saveBtn.disabled = false;
+    saveData();
+    closeModal();
+    
+    if(activeTab !== 'all') {
+        setTab('all');
+    } else {
+        const group = groups.find(g => g.id === activeGroupId);
+        currentCards = group.words.filter(w => true);
+        updateUI();
+    }
+}
+
+function deleteGroup(id) {
+    groups = groups.filter(g => g.id !== id);
+    if(activeGroupId === id) activeGroupId = groups[0] ? groups[0].id : null;
+    
+    saveData(); 
+    renderSidebar(); // ДОДАНО: миттєво оновлюємо візуал бічної панелі
+    
+    if(activeGroupId) {
+        setTab('all');
+    } else {
+        updateUI();
+    }
+}
+
+function deleteWord(groupId, wordId) {
+    const group = groups.find(g => g.id === groupId);
+    if(!group) return;
+    group.words = group.words.filter(w => w.id !== wordId);
+    saveData(); updateCounters(); 
+    if (editingWordId === wordId) editingWordId = null;
+    renderEditWordList(groupId);
+    
+    currentCards = currentCards.filter(w => w.id !== wordId);
+    if(activeGroupId === groupId) buildCardStack();
+}
+
+function resetCurrentGroup() {
+    if(!activeGroupId) return;
+    
+    confirmAction('Скинути всі слова у стан "Не вивчено"?', () => {
+        const group = groups.find(g => g.id === activeGroupId);
+        if(group) {
+            group.words.forEach(w => w.status = 'new');
+            saveData(); 
+            updateCounters();
+            setTab('all'); 
+            if(document.getElementById('sidebar').classList.contains('open')) {
+                toggleSidebar();
+            }
+        }
+    });
+}
+
+function factoryReset() {
+    confirmAction('ВИДАЛИТИ ВСІ ДАНІ?', () => {
+        localStorage.removeItem('flashcardGroupsV3');
+        groups = JSON.parse(JSON.stringify(defaultData));
+        activeGroupId = groups[0].id;
+        setTab('all'); 
+        if(document.getElementById('sidebar').classList.contains('open')) toggleSidebar();
+    });
+}
+
+function toggleTheme(forceLight = false) {
+    if (forceLight === true || !document.body.classList.contains('light-theme')) {
+        document.body.classList.add('light-theme');
+        localStorage.setItem('flashcardThemeV3', 'light');
+    } else {
+        document.body.classList.remove('light-theme');
+        localStorage.setItem('flashcardThemeV3', 'dark');
+    }
+}
+
+function speakText(text, event) {
+    if(event) event.stopPropagation();
+    const msg = new SpeechSynthesisUtterance(text);
+    msg.lang = 'en-US';
+    window.speechSynthesis.speak(msg);
+}
+
+// Custom Confirm Modal Logic
+let confirmCallback = null;
+function confirmAction(message, callback, event) {
+    if(event) event.stopPropagation();
+    document.getElementById('confirm-text').innerText = message;
+    confirmCallback = callback;
+    document.getElementById('confirm-modal').classList.add('show');
+}
+function closeConfirmModal() {
+    document.getElementById('confirm-modal').classList.remove('show');
+    confirmCallback = null;
+}
+document.getElementById('confirm-yes-btn').addEventListener('click', () => {
+    if(confirmCallback) confirmCallback();
+    closeConfirmModal();
+});
+
+init();
+</script>
+</body>
+</html>
