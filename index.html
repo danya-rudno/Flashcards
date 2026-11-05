@@ -313,13 +313,14 @@
 
 <script>
 const defaultData = [
-    { id: 'g1', name: 'Механічна Інженерія', words: [
-        { id: 'w1', en: 'assess', ua: 'оцінювати', status: 'new' },
-        { id: 'w2', en: 'broad', ua: 'широкий (за тематикою)', status: 'new' },
-        { id: 'w3', en: 'hardware', ua: 'обладнання / механічні компоненти', status: 'new' },
-        { id: 'w4', en: 'power transmission', ua: 'передача потужності (силопередача)', status: 'new' },
-        { id: 'w5', en: 'ball bearing', ua: 'кульковий підшипник', status: 'new' },
-        { id: 'w6', en: 'inner race', ua: 'внутрішнє кільце (підшипника)', status: 'new' }
+    { id: 'g1', name: 'Знайомство', words: [
+        {
+            id: 'w-welcome',
+            en: 'Welcome to Flashcards!\\nCreated by Danylo Verbovskyi',
+            ua: 'Вітаю у Flashcards!\\nСтворено Данилом Вербовським',
+            status: 'new',
+            reverse: true
+        }
     ]}
 ];
 
@@ -340,7 +341,9 @@ function init() {
             activeGroupId = groups[0] ? groups[0].id : null; 
         }
     } else { 
-        groups = JSON.parse(JSON.stringify(defaultData)); 
+        groups = JSON.parse(JSON.stringify(defaultData));
+        activeGroupId = groups[0] ? groups[0].id : null;
+        saveData();
     }
     
     if (savedTheme === 'light') toggleTheme(true);
@@ -442,17 +445,22 @@ function buildCardStack() {
         card.style.zIndex = renderLimit - i;
         if (i > 0) card.style.transform = `scale(${1 - i*0.05}) translateY(${i*10}px)`;
 
-        const uaFormatted = word.ua.replace(/(\([^)]+\))/g, '<span class="ua-subtext">$1</span>');
+        const uaFormatted = word.ua.replace(/(\\([^)]+\\))/g, '<span class="ua-subtext">$1</span>');
+        const frontText = word.reverse ? word.en : uaFormatted;
+        const backText = word.reverse ? word.ua : word.en;
+        const ttsButton = word.reverse ? '' : `
+            <button class="tts-btn" onclick="speakText('${word.en.replace(/'/g, "\\'")}', event)" aria-label="Озвучити">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 0 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 0 0 14.14"></path></svg>
+            </button>
+        `;
 
         card.innerHTML = `
             <div class="card-face front">
-                <div>${uaFormatted}</div>
+                <div style="white-space: pre-line;">${frontText}</div>
             </div>
             <div class="card-face back">
-                <div>${word.en}</div>
-                <button class="tts-btn" onclick="speakText('${word.en.replace(/'/g, "\\'")}', event)" aria-label="Озвучити">
-                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg>
-                </button>
+                <div style="white-space: pre-line;">${backText}</div>
+                ${ttsButton}
             </div>
         `;
 
@@ -976,10 +984,11 @@ function resetCurrentGroup() {
 
 function factoryReset() {
     confirmAction('ВИДАЛИТИ ВСІ ДАНІ?', () => {
-        localStorage.removeItem('flashcardGroupsV3');
         groups = JSON.parse(JSON.stringify(defaultData));
-        activeGroupId = groups[0].id;
-        setTab('all'); 
+        activeGroupId = groups[0] ? groups[0].id : null;
+        saveData();
+        renderSidebar();
+        setTab('all');
         if(document.getElementById('sidebar').classList.contains('open')) toggleSidebar();
     });
 }
