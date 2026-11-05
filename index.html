@@ -316,8 +316,8 @@ const defaultData = [
     { id: 'g1', name: 'Знайомство', words: [
         {
             id: 'w-welcome',
-            en: 'Welcome to Flashcards!\\nCreated by Danylo Verbovskyi',
-            ua: 'Вітаю у Flashcards!\\nСтворено Данилом Вербовським',
+            en: 'Welcome to Flashcards!\nCreated by Danylo Verbovskyi',
+            ua: 'Вітаю у Flashcards!\nСтворено Данилом Вербовським',
             status: 'new',
             reverse: true
         }
@@ -445,7 +445,7 @@ function buildCardStack() {
         card.style.zIndex = renderLimit - i;
         if (i > 0) card.style.transform = `scale(${1 - i*0.05}) translateY(${i*10}px)`;
 
-        const uaFormatted = word.ua.replace(/(\\([^)]+\\))/g, '<span class="ua-subtext">$1</span>');
+        const uaFormatted = word.ua.replace(/(\([^)]+\))/g, '<span class="ua-subtext">$1</span>');
         const frontText = word.reverse ? word.en : uaFormatted;
         const backText = word.reverse ? word.ua : word.en;
         const ttsButton = word.reverse ? '' : `
