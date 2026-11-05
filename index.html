@@ -11,6 +11,7 @@
         :root {
             --bg-color: #121212;
             --text-color: #ffffff;
+            --muted-text: #a1a1aa;
             --card-front: #1e1e1e;
             --card-back: #2a2a40;
             --card-text: #ffffff;
@@ -40,6 +41,7 @@
         .light-theme {
             --bg-color: #f3f4f6;
             --text-color: #111827;
+            --muted-text: #6b7280;
             --card-front: #ffffff;
             --card-back: #f8fafc;
             --card-text: #111827;
@@ -150,8 +152,10 @@
         .tool-btn { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px; margin-bottom: 10px; background: var(--item-bg); color: var(--item-text); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; text-align: left; transition: all 0.2s ease; font-weight: 500; }
         .tool-btn:hover { background: var(--item-hover-bg); border-color: var(--primary); color: var(--item-hover-text); transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
         .tool-btn.danger:hover { background: var(--danger-hover-bg); border-color: var(--danger); color: var(--danger-hover-text); }
+        .tool-btn.is-active { background: var(--active-item-bg); border-color: var(--primary); color: var(--item-hover-text); }
         .tool-btn:active { transform: translateY(0); }
-        .tool-btn svg { width: 20px; height: 20px; }
+        .tool-btn svg { width: 20px; height: 20px; flex-shrink: 0; }
+        .tool-btn-status { margin-left: auto; font-size: 12px; font-weight: 600; opacity: 0.75; white-space: nowrap; }
 
         .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 99; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; backdrop-filter: blur(2px); }
         .overlay.show { opacity: 1; pointer-events: all; }
@@ -195,7 +199,10 @@
         .btn-restart:hover { transform: translateY(-3px) scale(1.05); box-shadow: 0 6px 20px rgba(79, 70, 229, 0.6); }
         .btn-restart:active { transform: translateY(0) scale(0.95); }
 
-        .ua-subtext { display: block; font-size: 16px; font-weight: normal; opacity: 0.75; margin-top: 8px; color: #a1a1aa; }
+        .ua-subtext { display: block; font-size: 16px; font-weight: normal; opacity: 0.75; margin-top: 8px; color: var(--muted-text); }
+        .welcome-copy { display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; }
+        .welcome-title { font-size: 1em; line-height: 1.25; font-weight: 700; }
+        .welcome-author { font-size: 0.52em; line-height: 1.4; font-weight: 500; color: var(--muted-text); }
 
         /* Confirm Modal styles */
         .confirm-actions { display: flex; gap: 10px; margin-top: 20px; }
@@ -262,6 +269,11 @@
             <button class="tool-btn" onclick="toggleTheme()">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
                 Світла / Темна тема
+            </button>
+            <button class="tool-btn" id="card-direction-btn" onclick="toggleCardDirection()" aria-pressed="false">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3l4 4-4 4"/><path d="M4 7h16"/><path d="M8 21l-4-4 4-4"/><path d="M20 17H4"/></svg>
+                <span>Перевернути картки</span>
+                <span class="tool-btn-status" id="card-direction-status">UA → EN</span>
             </button>
             <button class="tool-btn danger" onclick="factoryReset()">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
@@ -330,11 +342,14 @@ let activeTab = 'all';
 let currentCards = [];
 let swipeHistory = [];
 let isAnimating = false;
-let editingWordId = null; 
+let editingWordId = null;
+let isReverseMode = false;
 
 function init() {
     const savedGroups = localStorage.getItem('flashcardGroupsV3');
     const savedTheme = localStorage.getItem('flashcardThemeV3');
+    const savedDirection = localStorage.getItem('flashcardDirectionV1');
+    isReverseMode = savedDirection === 'reverse';
     if (savedGroups) { 
         groups = JSON.parse(savedGroups); 
         if(!groups.find(g => g.id === activeGroupId)) {
@@ -347,6 +362,7 @@ function init() {
     }
     
     if (savedTheme === 'light') toggleTheme(true);
+    updateCardDirectionButton();
     
     renderSidebar();
     
@@ -365,6 +381,25 @@ function updateUI() {
     updateCounters();
     buildCardStack();
 }
+
+function updateCardDirectionButton() {
+    const button = document.getElementById('card-direction-btn');
+    const status = document.getElementById('card-direction-status');
+    if (!button || !status) return;
+
+    button.classList.toggle('is-active', isReverseMode);
+    button.setAttribute('aria-pressed', String(isReverseMode));
+    status.textContent = isReverseMode ? 'EN → UA' : 'UA → EN';
+}
+
+function toggleCardDirection() {
+    isReverseMode = !isReverseMode;
+    localStorage.setItem('flashcardDirectionV1', isReverseMode ? 'reverse' : 'normal');
+    swipeHistory = [];
+    updateCardDirectionButton();
+    buildCardStack();
+}
+
 
 function updateCounters() {
     const group = groups.find(g => g.id === activeGroupId);
@@ -403,6 +438,16 @@ function setTab(tab) {
 }
 
 function setActiveGroup(id) { activeGroupId = id; setTab('all'); toggleSidebar(); }
+
+function renderWelcomeContent(text) {
+    const lines = text.split('\\n');
+    const title = lines.shift() || '';
+    const author = lines.join(' ');
+    return `<div class="welcome-copy">
+        <div class="welcome-title">${title}</div>
+        <div class="welcome-author">${author}</div>
+    </div>`;
+}
 
 function buildCardStack() {
     const stack = document.getElementById('card-stack');
@@ -445,22 +490,30 @@ function buildCardStack() {
         card.style.zIndex = renderLimit - i;
         if (i > 0) card.style.transform = `scale(${1 - i*0.05}) translateY(${i*10}px)`;
 
-        const uaFormatted = word.ua.replace(/(\([^)]+\))/g, '<span class="ua-subtext">$1</span>');
-        const frontText = word.reverse ? word.en : uaFormatted;
-        const backText = word.reverse ? word.ua : word.en;
+        const uaFormatted = word.ua.replace(/(\\([^)]+\\))/g, '<span class="ua-subtext">$1</span>');
+        const englishOnFront = word.reverse || isReverseMode;
+        const frontText = word.reverse
+            ? renderWelcomeContent(word.en)
+            : (englishOnFront ? word.en : uaFormatted);
+        const backText = word.reverse
+            ? renderWelcomeContent(word.ua)
+            : (englishOnFront ? uaFormatted : word.en);
         const ttsButton = word.reverse ? '' : `
             <button class="tts-btn" onclick="speakText('${word.en.replace(/'/g, "\\'")}', event)" aria-label="Озвучити">
-                <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 0 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 0 0 14.14"></path></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg>
             </button>
         `;
+        const frontTts = !word.reverse && englishOnFront ? ttsButton : '';
+        const backTts = !word.reverse && !englishOnFront ? ttsButton : '';
 
         card.innerHTML = `
             <div class="card-face front">
                 <div style="white-space: pre-line;">${frontText}</div>
+                ${frontTts}
             </div>
             <div class="card-face back">
                 <div style="white-space: pre-line;">${backText}</div>
-                ${ttsButton}
+                ${backTts}
             </div>
         `;
 
