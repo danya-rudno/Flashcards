@@ -5,7 +5,7 @@
     <meta name="theme-color" content="#ffffff">
     <link rel="apple-touch-icon" href="./icon-512.png">
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>English Tech Flashcards</title>
     <style>
         :root {
@@ -69,9 +69,33 @@
         }
 
         * { box-sizing: border-box; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
-        body { margin: 0; padding: 0; background-color: var(--bg-color); color: var(--text-color); overflow: hidden; transition: background-color 0.3s ease; }
+        body {
+            margin: 0;
+            padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+            height: 100vh;
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            overflow: hidden;
+            transition: background-color 0.3s ease;
+        }
 
-        header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border-bottom: 1px solid var(--border); transition: border-color 0.3s ease; }
+        header {
+            position: relative;
+            z-index: 10;
+            isolation: isolate;
+            flex: 0 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: var(--bg-color);
+            opacity: 1;
+            border-bottom: 1px solid var(--border);
+            transition: border-color 0.3s ease;
+        }
         
         .menu-btn, .sidebar-close {
             display: flex; align-items: center; justify-content: center; cursor: pointer; background: none; border: none; 
@@ -88,7 +112,17 @@
         .tab:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: 0 4px 10px rgba(79, 70, 229, 0.2); }
         .tab.active { background: var(--primary); color: white; border-color: var(--primary); transform: translateY(0); box-shadow: none; }
 
-        .main-container { position: relative; height: calc(100vh - 170px); display: flex; justify-content: center; align-items: center; overflow: hidden; perspective: 1000px; }
+        .main-container {
+            position: relative;
+            flex: 1 1 auto;
+            min-height: 0;
+            height: auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            perspective: 1000px;
+        }
         
         .card-stack { position: relative; width: 320px; height: 420px; }
         
@@ -116,7 +150,15 @@
         .tts-btn:active { transform: scale(0.9); }
         .tts-btn svg { width: 22px; height: 22px; stroke: currentColor; }
 
-        .controls { height: 90px; display: flex; justify-content: center; align-items: center; gap: 20px; padding: 0 20px; }
+        .controls {
+            flex: 0 0 90px;
+            height: 90px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            padding: 0 20px 10px;
+        }
         .ctrl-btn { border-radius: 50%; border: none; cursor: pointer; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3); color: white; transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease; }
         .ctrl-btn:hover { transform: scale(1.1); box-shadow: 0 6px 15px rgba(0,0,0,0.4); }
         .ctrl-btn:active { transform: scale(0.9); box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
@@ -440,7 +482,7 @@ function setTab(tab) {
 function setActiveGroup(id) { activeGroupId = id; setTab('all'); toggleSidebar(); }
 
 function renderWelcomeContent(text) {
-    const lines = text.split('\n');
+    const lines = text.split(/\r?\n|\\n/);
     const title = lines.shift() || '';
     const author = lines.join(' ');
     return `<div class="welcome-copy">
